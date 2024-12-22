@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Filters</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #FFFFFF;
+            --surface-color: #F8F9FA;
+            --accent-color: #2196F3;
+            --accent-hover: #1976D2;
+            --text-color: #2C3E50;
+            --subtle-text: #6C757D;
+            --border-color: #E9ECEF;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Consolas', monospace;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            padding: 2rem;
+            background: var(--surface-color);
+            border-radius: 24px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .toolbar {
+            background: var(--bg-color);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            height: fit-content;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin: 0 0 1.5rem 0;
+            color: var(--accent-color);
+            letter-spacing: 1px;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--accent-color);
+        }
+
+        .slider-container {
+            margin: 0.8rem 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: var(--subtle-text);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .btn {
+            background: var(--bg-color);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+        }
+
+        .btn i {
+            font-size: 1.1rem;
+        }
+
+        .image-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-color);
+            border-radius: 16px;
+            border: 2px dashed var(--border-color);
+            min-height: 500px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-container:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.1);
+        }
+
+        .upload-text {
+            text-align: center;
+            color: var(--subtle-text);
+            transition: all 0.3s ease;
+        }
+
+        .upload-text i {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        .bottom-toolbar {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 添加微妙的动画效果 */
+        @keyframes subtle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .upload-text i {
+            animation: subtle-bounce 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 左侧工具栏 -->
+        <div class="toolbar">
+            <h3>Basic Adjustments</h3>
+            <div class="slider-container">
+                <label>Brightness</label>
+                <input type="range" class="slider" id="brightness" min="0" max="200" value="100">
+            </div>
+            <div class="slider-container">
+                <label>Contrast</label>
+                <input type="range" class="slider" id="contrast" min="0" max="200" value="100">
+            </div>
+            <div class="slider-container">
+                <label>Saturation</label>
+                <input type="range" class="slider" id="saturation" min="0" max="200" value="100">
+            </div>
+
+            <h3>Effects</h3>
+            <div class="button-group">
+                <button class="btn" onclick="applyEffect('grayscale')">Grayscale</button>
+                <button class="btn" onclick="applyEffect('sepia')">Retro</button>
+                <button class="btn" onclick="applyEffect('blur')">Blur</button>
+                <button class="btn" onclick="applyEffect('sharpen')">Sharpen</button>
+            </div>
+
+            <h3>Transform</h3>
+            <div class="button-group">
+                <button class="btn" onclick="rotateImage('left')">Rotate Left</button>
+                <button class="btn" onclick="rotateImage('right')">Rotate Right</button>
+                <button class="btn" onclick="flipImage('horizontal')">Horizontal-Flip</button>
+                <button class="btn" onclick="flipImage('vertical')">Vertical-flip</button>
+            </div>
+        </div>
+
+        <!-- 右侧主要编辑区域 -->
+        <div class="editor-main">
+            <div class="image-container" id="imageContainer">
+                <div class="upload-text" id="uploadText">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click or drag the image here :)</p>
+                </div>
+                <img id="previewImage" style="display: none;">
+            </div>
+
+            <!-- 底部工具栏 -->
+            <div class="bottom-toolbar">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-upload"></i> Upload
+                </button>
+                <button class="btn" onclick="saveImage()">
+                    <i class="fas fa-download"></i> Save
+                </button>
+                <button class="btn secondary" onclick="resetImage()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+    <script>
+
+        // 遇不决，先创建一个对象，不清作用是啥
+        let currentImage = {
+            //创建一个filters对象，用来存储图片的滤镜效果
+            //filters对象中包含多个属性，每个属性都是一个滤镜效果
+            filters: {
+                brightness: 100,
+                contrast: 100,
+                saturation: 100,
+                grayscale: 0,   //灰度
+                sepia: 0      //复古
+            },
+            //创建一个transform对象，用来存储图片的变换效果
+            transform: {
+                rotate: 0, //旋转角度
+                flipH: 1, //水平翻转，1表示不翻转，-1表示翻转，用来控制图片是否水平翻转
+                flipV: 1  //垂直翻转
+            }
+        };
+
+        // 获取DOM元素 
+        const fileInput = document.getElementById('fileInput');
+        //用显示图片的容器
+        //这个是拖拽上传的区域
+        const imageContainer = document.getElementById('imageContainer');
+        //用来显示预览图片
+        const previewImage = document.getElementById('previewImage');
+        const uploadText = document.getElementById('uploadText');
+
+        //处理拖拽上传
+        //dragover事件：当用户将文件拖入到元素上时触发
+        //这里阻止默认行为，并改变样式
+        //e 是一个 DragEvent 对象，继承了 Event 的基本属性和方法，还扩展了拖拽相关的信息
+        //e是浏览器创建的第一个参数的对象，有具体的方法。
+        imageContainer.addEventListener('dragover', (e) => {
+            //默认情况下，拖放文件会直接打开文件（导航到文件路径）
+            //阻止
+            e.preventDefault();
+            //拖拽到上方改变边框颜色
+            imageContainer.style.borderColor = '#4CAF50';
+        });
+        //移出区域监听
+        imageContainer.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            imageContainer.style.borderColor = '#ddd';
+        });
+
+        //drop事件，用户在指定区域放下文件时触发
+        imageContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageContainer.style.borderColor = '#ddd';
+            //获取文件
+            //e.dataTransfer.files 是一个包含所有拖放文件的 文件列表（FileList）。
+            //[0]表示我们选择拖进来的第一个文件
+            const file = e.dataTransfer.files[0];
+            //判断文件类型是否为图片
+            //file.type.startsWith('image/') 检查文件的 MIME 类型是否以 'image/' 开头
+            if (file && file.type.startsWith('image/')) {
+                //一个方法，用来图片上传
+                handleImageUpload(file);
+            }
+        });
+
+        //点击上传区域触发文件选择
+        //给Container绑定点击事件
+        imageContainer.addEventListener('click', () => {
+            //previewImage.src 是图片的src属性，用来显示图片
+            //如果这个地方没有图片，则src为空
+            if (!previewImage.src) {
+                //点击触发文件选择，被隐藏的fileInput元素
+                fileInput.click();
+            }
+        });
+
+        //给fileInput添加change事件，当用户选择文件时触发
+        //也就变相当用点击"上传图片"按钮的行为
+        fileInput.addEventListener('change', (e) => {
+            //拿到一堆图片的第一张
+            const file = e.target.files[0];
+            if (file) {
+                handleImageUpload(file);
+            }
+        });
+
+
+        //处理上传上来的图片，把图片显示在previewImage中
+        function handleImageUpload(file) {
+            //具体来说就是拿file对象，创建一个FileReader对象，用来读取文件
+            //FileReader 是 HTML5 中用于读取文件的 API，允许异步读取文件内容，将其转换为字符串或二进制数据。
+
+            //创建一个FileReader对象
+            const reader = new FileReader();
+            //读取完了就执行onload
+            //回调函数，当读取文件完成时，会调用这个函数
+            //回调函数在异步操作启动前注册
+            reader.onload = (e) => {
+                //e.target.result：读取的文件内容，格式为 Base64 数据 URL
+                //Base64 是一种文本编码式，可以直接用于 <img> 标签的 src 属性。
+                previewImage.src = e.target.result;
+                //display属性：block 表示显示，none表示隐藏
+                previewImage.style.display = 'block';
+                uploadText.style.display = 'none';
+                //重置滤镜和变换
+                resetImage();
+            }
+            //读取文件
+            //这是异步操作，回调函数写在上面了
+            //readAsDataURL 方法用于将 File 或 Blob 对象读取为 Data URL。
+            // readAsDataURL(file) 方法将文件读取为 Base64 数据 URL 格式。
+            reader.readAsDataURL(file);
+        }
+
+        //重置滤镜和变换
+        function resetImage() {
+            //将滤镜和变换的值重置为初始值
+            currentImage = {
+                filters: {
+                    brightness: 100,
+                    contrast: 100,
+                    saturation: 100,
+                    grayscale: 0,
+                    sepia: 0,
+                    blur: 0
+                },
+                transform: {
+                    rotate: 0,
+                    flipH: 1,
+                    flipV: 1
+                }
+            }
+
+            //重置所有滑块
+            //用逻辑或目的是如果currentImage.filters[slider.id]不在，则设置为100
+            //因为当其存在时，currentImage.filters[slider.id]的值就是滑块的值
+            document.querySelectorAll('.slider').forEach(slider => {
+                slider.value = currentImage.filters[slider.id] || 100;
+            });
+            applyFilters();
+        };
+
+
+
+
+        //滑块的监听
+        //querySelectorAll用于获取页面上所有符合指定 CSS 选择器的素集合。
+        //forEach() 中，slider是每一个slider元素，e是事件对象
+        //监听input事件：当用户拖动滑块时，相当于输入了值
+
+        //e.target是触发事件的元素，e.target.id是滑块的id，e.target.value是滑块的值
+        //将filter对象中的相应值变成滑块的值
+        //applyFilters()应用滤镜
+        //简直是天才
+        document.querySelectorAll('.slider').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                currentImage.filters[e.target.id] = e.target.value;
+                applyFilters();
+            });
+        });
+
+
+
+        //应用滤镜效果l
+        //思路是：
+        //1.获取滤镜的值
+        //2.将滤镜的值应用到预览图片上
+        function applyFilters() {
+            //对象解构赋值，将currentImage.filters对象中的属性解构赋给brightness,contrast,saturation,grayscale,sepia,blur
+            //把相应的数值结构出来，形成两个对象
+            const { brightness, contrast, saturation, grayscale, sepia, blur } = currentImage.filters;
+            const { rotate, flipH, flipV } = currentImage.transform;
+
+            //将滤镜的值应用到预览图片上
+            //style.filter 是 CSS 样式中的 filter 属性，用于对图像进行滤镜效果处理。
+            //style.transform 是 CSS 样式中的 transform 属性，用于对图像进行变换效果处理。
+            previewImage.style.filter = `
+                brightness(${brightness}%)
+                contrast(${contrast}%)
+                saturate(${saturation}%)
+                grayscale(${grayscale}%)
+                sepia(${sepia}%)
+                blur(${blur}px)
+            `;
+
+            previewImage.style.transform = `
+                rotate(${rotate}deg)
+                scaleX(${flipH})
+                scaleY(${flipV})
+            `;
+        }
+
+        //这个是四种不同的效果，黑白等等
+        //思路就是switch case 重复applyFilters的步骤
+        function applyEffect(effect) {
+            switch (effect) {
+                //真实妙啊，只改变一种，其他的值不变
+                case 'grayscale':
+                    //grayscale 0表示不灰度，100表示灰度
+                    currentImage.filters.grayscale = currentImage.filters.grayscale ? 0 : 100;
+                    break;
+                case 'sepia':
+                    currentImage.filters.sepia = currentImage.filters.sepia ? 0 : 100;
+                    break;
+                case 'blur':
+                    //设置模糊半径为5px
+                    currentImage.filters.blur = currentImage.filters.blur ? 0 : 5;
+                    break;
+                case 'sharpen':
+                    previewImage.style.filter += 'contrast(120%) brightness(110%)';
+                    break;
+            }
+            applyFilters();
+        }
+
+        //旋转图片
+        function rotateImage(direction) {
+            //如果传入的direction是left，则旋转角度为-90，否则为90
+            //简直天才
+            const change = direction === 'left' ? -90 : 90;
+            //将transform对象中的rotate属性加上change
+            currentImage.transform.rotate += change;
+            applyFilters();
+        }
+
+        //翻转图片
+        function flipImage(direction) {
+            //直接改对象的属性，牛逼
+            if (direction === 'horizontal') {
+                currentImage.transform.flipH *= -1;
+            } else {
+                currentImage.transform.flipV *= -1;
+            }
+            applyFilters();
+        };
+
+        //保存图片
+        function saveImage() {
+            if (!previewImage.src) {
+                alert('请先上传图片！');
+                return;
+            }
+
+            //拿canvas合成照片
+            const canvas = document.createElement('canvas');
+            // 使用 getContext('2d') 获取 2D 渲染上下文对象（ctx）
+            //可以用它操作 canvas，例如绘制图片、设置样式等
+            const ctx = canvas.getContext('2d');
+
+            //设置尺寸大小
+            //.naturalWidth和.naturalHeight是图片的原始宽度和高��
+            //是两个只读属性
+            canvas.width = previewImage.naturalWidth;
+            canvas.height = previewImage.naturalHeight;
+
+            //应用变和滤镜
+            ctx.filter = previewImage.style.filter;
+            //设置变换中心，用来旋转
+            //将 canvas 的变换中心移动到图片的中心点，方便后续旋转和放操作。
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            //canvas 中旋转需要使用弧度
+            //通过 Math.PI / 180 角度转换为弧度
+            //按当前旋转角度 rotate（单位是度旋转图片。
+            ctx.rotate((currentImage.transform.rotate * Math.PI) / 180);
+            //水平翻转
+            ctx.scale(currentImage.transform.flipH, currentImage.transform.flipV);
+
+            //绘制图片
+            //因为变换中心已被移动到 canvas 的中心，图片左上角需要偏移到 (-canvas.width / 2, -canvas.height / 2)。
+            ctx.drawImage(previewImage, -canvas.width / 2, -canvas.height / 2);
+
+            //创建下载连接
+            //a标签是用来创建一个下载链接的
+            const link = document.createElement('a');
+            //设置 download 属性为 'edited-image.png'，指定下载文件的名。
+            link.download = 'edited-image.png';
+            //使用 canvas.toDataURL('image/png') 将 canvas 的内容转换为 Base64 格式的 PNG 图像数据。
+            link.href = canvas.toDataURL('image/png');
+            //触发点击事件，模拟用户点击下载链接
+            link.click();
+        }
+
+        //预设效果
+        const presets = {
+            vintage: {
+                brightness: 110,
+                contrast: 85,
+                saturation: 70,
+                sepia: 50
+            },
+            dramatic: {
+                brightness: 110,
+                contrast: 150,
+                saturation: 120,
+                grayscale: 0
+            },
+            cool: {
+                brightness: 100,
+                contrast: 100,
+                saturation: 80,
+                grayscale: 0
+            },
+            warm: {
+                brightness: 105,
+                contrast: 95,
+                saturation: 120,
+                sepia: 20
+            }
+        };
+
+        //应用预设
+        function applyPreset(presetName) {
+            const preset = presets[presetName];
+            if (!preset) return;
+
+            //应用预设值
+            //Object.keys()用来返回对象的每一个键名
+            Object.keys(preset).forEach(key => {
+                currentImage.filters[key] = preset[key];
+                //更新滑块的值
+                //如果滑块存在，则更新滑块的值
+                const slider = document.getElementById(key);
+                if (slider) {
+                    slider.value = preset[key];
+                }
+            });
+            applyFilters();
+        }
+    </script>
+</body>
+
+</html>
